@@ -7,6 +7,7 @@ import {
   Link,
 } from 'react-router-dom';
 import Home from './pages/Home';
+import Login from './pages/Login';
 import './styles/global.sass';
 
 const rootElement = document.getElementById('app-root');
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <Home />,
+      },
+      {
+        path: '/login',
+        element: <Login />,
       },
     ],
   },
