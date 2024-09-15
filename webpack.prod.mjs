@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 export default {
   mode: 'production',
-  entry: './src/index.tsx',
+  entry: './src/main.tsx',
   output: {
     publicPath: '',
     path: path.resolve(__dirname, 'public'),

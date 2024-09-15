@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "moduleResolution": "node",
     "jsx": "react",
     "jsxFactory": "React.createElement",
     "module": "ESNext",
