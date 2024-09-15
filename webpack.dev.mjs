@@ -15,12 +15,6 @@ export default {
     clean: true,
   },
   devtool: 'inline-source-map',
-  devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
-    hot: true,
-  },
   module: {
     rules: [
       {
