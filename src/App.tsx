@@ -1,6 +1,6 @@
 import React from 'react';
 
-import './styles/app.sass';
+import './styles/App.sass';
 
 export default class App extends React.Component {
   override render(): React.JSX.Element {
