@@ -4,10 +4,11 @@ import {
   createBrowserRouter,
   RouterProvider,
   Outlet,
-  Link,
 } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import NotFound from './pages/NotFound';
+import AppHeader from './components/AppHeader';
 import './styles/global.sass';
 
 const rootElement = document.getElementById('app-root');
@@ -20,22 +21,14 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <React.Fragment>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="login">Login</Link>
-          <Link to="signup">Sign Up</Link>
-        </nav>
+        <AppHeader />
         <Outlet />
       </React.Fragment>
     ),
     errorElement: (
       <React.Fragment>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="login">Login</Link>
-          <Link to="signup">Sign Up</Link>
-        </nav>
-        <h1>404 Page Not Found</h1>
+        <AppHeader />
+        <NotFound />
       </React.Fragment>
     ),
     children: [

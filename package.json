@@ -34,6 +34,7 @@
     "@typescript-eslint/parser": "^8.5.0",
     "eslint": "^9.10.0",
     "eslint-plugin-react": "^7.36.1",
+    "firebase": "^10.13.1",
     "globals": "^15.9.0",
     "style-loader": "^4.0.0",
     "typescript-eslint": "^8.5.0",

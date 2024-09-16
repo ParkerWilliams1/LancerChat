@@ -1,3 +1,6 @@
+# Firebase
+.firebase*
+
 # Output directories
 public/*
 
