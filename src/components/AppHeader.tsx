@@ -7,7 +7,9 @@ export default class AppHeader extends React.Component {
     return (
       <header className="app-header">
         <h1>
-          <Link to="/">Lancer<span>chat</span></Link>
+          <Link to="/">
+            Lancer<span>chat</span>
+          </Link>
         </h1>
         <nav>
           <ul>
