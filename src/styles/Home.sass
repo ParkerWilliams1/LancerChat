@@ -1,11 +1,15 @@
 main.home
   padding: 40px
-  div.video-grid
+  display: flex
+  width: 100%
+  box-sizing: border-box
+  column-gap: 40px
+  div.video-sidebar
     display: flex
     flex-flow: column
     justify-content: space-between
     row-gap: 1rem
-    width: 400px
+    width: 500px
     height: calc(100vh - 80px - 55px - 200px)
     video
       background-color: #222
@@ -22,3 +26,16 @@ main.home
     font-size: 0.85rem
     cursor: pointer
     box-shadow: 0 0 1px #0008
+  div.chat-container
+    width: 100%
+    display: grid
+    grid-template-rows: auto 100px
+    div.chat-messages
+      width: 100%
+      height: 100%
+      background-color: #eee
+    textarea
+      width: 100%
+      height: 100px
+      box-sizing: border-box
+      resize: none

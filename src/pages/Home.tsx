@@ -18,10 +18,14 @@ export default class Home extends React.Component<object, HomeState> {
       localStream: null,
       streaming: false,
     };
-    this.handleClick = this.handleClick.bind(this);
+    this.toggleVideo = this.toggleVideo.bind(this);
   }
 
-  async handleClick(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
+  async skipUser(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
+    event.preventDefault();
+  }
+
+  async toggleVideo(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
     const button = event.target as HTMLButtonElement | null;
     const localVideo = this.localVideoRef.current;
     if (!button || !localVideo) return;
@@ -56,11 +60,16 @@ export default class Home extends React.Component<object, HomeState> {
   override render(): React.JSX.Element {
     return (
       <main className="home">
-        <div className="video-grid">
+        <div className="video-sidebar">
           <video ref={this.localVideoRef} autoPlay playsInline></video>
           <video ref={this.remoteVideoRef} autoPlay playsInline></video>
+          <button onClick={this.toggleVideo}>Start Video</button>
+          <button onClick={this.skipUser}>Skip User</button>
         </div>
-        <button onClick={this.handleClick}>Start Video</button>
+        <div className="chat-container">
+          <div className="chat-messages"></div>
+          <textarea />
+        </div>
       </main>
     );
   }
