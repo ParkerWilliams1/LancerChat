@@ -14,6 +14,9 @@ export default {
     filename: 'bundle.js',
     clean: true,
   },
+  devServer: {
+    historyApiFallback: true,
+  },
   devtool: 'inline-source-map',
   module: {
     rules: [
