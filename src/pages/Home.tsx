@@ -6,11 +6,11 @@ interface HomeState {
   streaming: boolean;
 }
 
-export default class Home extends React.Component<{}, HomeState> {
+export default class Home extends React.Component<object, HomeState> {
   private localVideoRef: React.RefObject<HTMLVideoElement>;
   private remoteVideoRef: React.RefObject<HTMLVideoElement>;
 
-  constructor(props: {} | Readonly<{}>) {
+  constructor(props: object) {
     super(props);
     this.localVideoRef = React.createRef();
     this.remoteVideoRef = React.createRef();
@@ -28,8 +28,13 @@ export default class Home extends React.Component<{}, HomeState> {
     if (this.state.localStream === null) {
       button.innerText = 'Loading...';
       try {
-        const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        await new Promise<void>((resolve) => this.setState({ localStream }, resolve));
+        const localStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        await new Promise<void>((resolve) =>
+          this.setState({ localStream }, resolve)
+        );
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error accessing media devices.', error);
@@ -50,13 +55,13 @@ export default class Home extends React.Component<{}, HomeState> {
 
   override render(): React.JSX.Element {
     return (
-      <section className="home">
+      <main className="home">
         <div className="video-grid">
           <video ref={this.localVideoRef} autoPlay playsInline></video>
           <video ref={this.remoteVideoRef} autoPlay playsInline></video>
         </div>
         <button onClick={this.handleClick}>Start Video</button>
-      </section>
+      </main>
     );
   }
 }

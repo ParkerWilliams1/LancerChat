@@ -1,11 +1,27 @@
+@use 'variables'
+
 header.app-header
   width: 100%
   height: 55px
   padding-inline: 40px
   box-sizing: border-box
-  // box-shadow: 0 0 4px #0001
+  box-shadow: 0 0 4px #0001
   display: flex
+  align-items: center
   justify-content: space-between
+  h1
+    font-size: 1rem
+    -webkit-user-select: none
+    user-select: none
+    a
+      text-decoration: none
+      color: variables.$lancer-navy
+      span
+        padding: .125rem .25rem
+        background-color: variables.$lancer-gold
+        color: #ffffff
+        border-radius: 3px
+        margin-left: .125rem
   nav
     height: 100%
     ul
@@ -22,5 +38,5 @@ header.app-header
           justify-content: center
           text-decoration: none
           color: inherit
-          line-height: 100%
           height: 100%
+          font-size: 0.85rem
