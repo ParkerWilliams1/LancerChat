@@ -1,18 +1,23 @@
 import React from 'react';
 import '../styles/Home.sass';
 
-export default class Home extends React.Component {
+interface HomeState {
+  localStream: MediaStream | null;
+  streaming: boolean;
+}
+
+export default class Home extends React.Component<{}, HomeState> {
   private localVideoRef: React.RefObject<HTMLVideoElement>;
   private remoteVideoRef: React.RefObject<HTMLVideoElement>;
-  private localStream: MediaStream | null;
-  private streaming: boolean;
 
   constructor(props: {} | Readonly<{}>) {
     super(props);
     this.localVideoRef = React.createRef();
     this.remoteVideoRef = React.createRef();
-    this.localStream = null;
-    this.streaming = false;
+    this.state = {
+      localStream: null,
+      streaming: false,
+    };
     this.handleClick = this.handleClick.bind(this);
   }
 
@@ -20,25 +25,27 @@ export default class Home extends React.Component {
     const button = event.target as HTMLButtonElement | null;
     const localVideo = this.localVideoRef.current;
     if (!button || !localVideo) return;
-    if (this.localStream === null) {
+    if (this.state.localStream === null) {
       button.innerText = 'Loading...';
       try {
-        this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        await new Promise<void>((resolve) => this.setState({ localStream }, resolve));
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error accessing media devices.', error);
         }
+        return;
       }
     }
 
-    if (this.streaming) {
+    if (this.state.streaming) {
       button.innerText = 'Start Video';
       localVideo.srcObject = null;
     } else {
       button.innerText = 'Stop Video';
-      localVideo.srcObject = this.localStream;
+      localVideo.srcObject = this.state.localStream;
     }
-    this.streaming = !this.streaming;
+    this.setState((prevState) => ({ streaming: !prevState.streaming }));
   }
 
   override render(): React.JSX.Element {
