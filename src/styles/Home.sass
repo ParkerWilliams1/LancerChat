@@ -1,41 +1,87 @@
+@use 'variables'
+
 main.home
   padding: 40px
   display: flex
   width: 100%
   box-sizing: border-box
   column-gap: 40px
-  div.video-sidebar
+  height: calc(100vh - 55px)
+  div.sidebar
+    display: flex
+    flex-flow: column
+    width: 500px
+    height: 100%
+    div.videos
+      display: flex
+      flex-flow: column
+      justify-content: space-between
+      height: 100%
+      video
+        background-color: #222
+        width: 100%
+        aspect-ratio: 4 / 3
+        object-fit: cover
+    div.buttons
+      display: grid
+      grid-template-columns: 1fr 1fr
+      column-gap: 1rem
+      width: 100%
+      padding-top: 100px
+      button
+        background-color: #fafafa
+        border: 0
+        box-shadow: 0
+        font: inherit
+        margin-top: 1rem
+        padding: .5rem 1.5rem
+        font-size: 0.85rem
+        cursor: pointer
+        box-shadow: 0 0 1px #0008
+  section.chat-content
+    height: 100%
+    width: 100%
     display: flex
     flex-flow: column
     justify-content: space-between
-    row-gap: 1rem
-    width: 500px
-    height: calc(100vh - 80px - 55px - 200px)
-    video
-      background-color: #222
-      width: 100%
-      aspect-ratio: 16 / 9
-      object-fit: cover
-  button
-    background-color: #fafafa
-    border: 0
-    box-shadow: 0
-    font: inherit
-    margin-top: 1rem
-    padding: .5rem 1.5rem
-    font-size: 0.85rem
-    cursor: pointer
-    box-shadow: 0 0 1px #0008
-  div.chat-container
-    width: 100%
-    display: grid
-    grid-template-rows: auto 100px
-    div.chat-messages
+    ul.messages-list
       width: 100%
       height: 100%
-      background-color: #eee
-    textarea
+      background-color: #fafafa
+      box-shadow: 0 0 1px #0008
+      margin: 0
+      padding: 0
+    form.message-form
       width: 100%
-      height: 100px
-      box-sizing: border-box
-      resize: none
+      max-height: 200px
+      background-color: #fafafa
+      display: flex
+      align-items: center
+      box-shadow: 0 0 1px #0008
+      textarea.message-input
+        width: 100%
+        height: calc(20px + 1rem)
+        box-sizing: border-box
+        resize: none
+        background-color: #0000
+        border: 0
+        outline: 0
+        font: inherit
+        padding: 10px 15px
+        font-size: 0.825rem
+        overflow: auto
+      button.submit-message
+        border-radius: 50%
+        width: 40px
+        height: 40px
+        border: 0
+        background-color: variables.$lancer-gold
+        display: flex
+        align-items: center
+        justify-content: center
+        cursor: pointer
+        box-shadow: 0 0 4px #0004
+        svg
+          fill: #ffffff
+          width: 20px
+          height: 20px
