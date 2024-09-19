@@ -11,7 +11,7 @@ export default class Home extends React.Component<object, HomeState> {
   private localVideoRef: React.RefObject<HTMLVideoElement>;
   private remoteVideoRef: React.RefObject<HTMLVideoElement>;
   private messageInputRef: React.RefObject<HTMLTextAreaElement>;
-  private remoteConnection: RTCPeerConnection;
+  private peerConnection: RTCPeerConnection;
 
   constructor(props: object) {
     super(props);
@@ -24,42 +24,12 @@ export default class Home extends React.Component<object, HomeState> {
     };
     this.toggleVideo = this.toggleVideo.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
-    this.createOffer = this.createOffer.bind(this);
-    this.acceptOffer = this.acceptOffer.bind(this);
-    this.remoteConnection = new RTCPeerConnection(rtcConfiguration);
-    this.remoteConnection.onicecandidate = (event) => {
+    this.peerConnection = new RTCPeerConnection(rtcConfiguration);
+    this.peerConnection.ontrack = (event) => {
       console.log(event);
+      if (!this.remoteVideoRef.current) return;
+      this.remoteVideoRef.current.srcObject = event.streams[0] as MediaStream;
     };
-    this.remoteConnection.onicegatheringstatechange = () => {
-      console.log(
-        'ICE Gathering State: ',
-        this.remoteConnection.iceGatheringState
-      );
-    };
-  }
-
-  async createOffer(): Promise<RTCSessionDescriptionInit> {
-    const offer = await this.remoteConnection.createOffer();
-    await this.remoteConnection.setLocalDescription(offer);
-    return offer;
-  }
-
-  async acceptOffer(offerString: string): Promise<void> {
-    const offer = JSON.parse(offerString);
-    await this.remoteConnection.setRemoteDescription(offer);
-    console.log(this.remoteConnection);
-  }
-
-  override async componentDidMount(): Promise<void> {
-    const messageInput = this.messageInputRef.current;
-    if (!messageInput) return;
-    const messageInputContainer = messageInput.parentElement;
-    if (!messageInputContainer) return;
-    messageInput.style.height = '';
-    messageInputContainer.style.height = '';
-    messageInputContainer.style.height = `${messageInput.scrollHeight}px`;
-    const offer = await this.createOffer();
-    console.log(offer);
   }
 
   async skipUser(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
@@ -80,6 +50,10 @@ export default class Home extends React.Component<object, HomeState> {
         await new Promise<void>((resolve) =>
           this.setState({ localStream }, resolve)
         );
+        localStream.getTracks().forEach(track => this.peerConnection.addTrack(track, localStream));
+        const offer = await this.peerConnection.createOffer();
+        await this.peerConnection.setLocalDescription(offer);
+        console.log(offer);
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error accessing media devices.', error);
@@ -98,19 +72,35 @@ export default class Home extends React.Component<object, HomeState> {
     this.setState((prevState) => ({ streaming: !prevState.streaming }));
   }
 
-  sendMessage(event: React.FormEvent<HTMLFormElement>): void {
+  async sendMessage(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const input = this.messageInputRef.current;
     if (!input) return;
-    const offer = input.value;
+    try {
+      const json = JSON.parse(input.value);
+      if (json.type === 'offer') {
+        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(json));
+        const answer = await this.peerConnection.createAnswer();
+        await this.peerConnection.setLocalDescription(answer);
+        console.log(answer);
+      } else if (json.type === 'answer') {
+        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(json));
+      }
+
+      this.peerConnection.onicecandidate = ({ candidate }) => {
+        if (candidate) this.peerConnection.addIceCandidate(candidate);
+      };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error);
+      }
+    }
     input.value = '';
-    this.acceptOffer(offer);
   }
 
   handleMessageInput(event: React.FormEvent<HTMLTextAreaElement>): void {
     const messageInput = event.target as HTMLTextAreaElement | null;
     if (!messageInput) return;
-    console.log(messageInput.value);
   }
 
   override render(): React.JSX.Element {
@@ -136,11 +126,12 @@ export default class Home extends React.Component<object, HomeState> {
               spellCheck="false"
             />
             <button className="submit-message">
+              <span>Send</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 256 256"
-                width="24"
-                height="24"
+                width="16"
+                height="16"
                 xmlSpace="preserve"
               >
                 <path

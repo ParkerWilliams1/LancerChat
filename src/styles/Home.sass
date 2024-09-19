@@ -15,8 +15,7 @@ main.home
     div.videos
       display: flex
       flex-flow: column
-      justify-content: space-between
-      height: 100%
+      row-gap: 1rem
       video
         background-color: #222
         width: 100%
@@ -27,7 +26,6 @@ main.home
       grid-template-columns: 1fr 1fr
       column-gap: 1rem
       width: 100%
-      padding-top: 100px
       button
         background-color: #fafafa
         border: 0
@@ -60,20 +58,18 @@ main.home
       box-shadow: 0 0 1px #0008
       textarea.message-input
         width: 100%
-        height: calc(20px + 1rem)
+        height: calc(30px + 1rem)
         box-sizing: border-box
         resize: none
         background-color: #0000
         border: 0
         outline: 0
         font: inherit
-        padding: 10px 15px
+        padding: 15px 15px
         font-size: 0.825rem
         overflow: auto
       button.submit-message
-        border-radius: 50%
-        width: 40px
-        height: 40px
+        height: 100%
         border: 0
         background-color: variables.$lancer-gold
         display: flex
@@ -81,7 +77,9 @@ main.home
         justify-content: center
         cursor: pointer
         box-shadow: 0 0 4px #0004
+        padding-inline: 1rem
+        span
+          color: #ffffff
+          margin-right: .5rem
         svg
           fill: #ffffff
-          width: 20px
-          height: 20px
