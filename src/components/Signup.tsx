@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/Signup.sass';
 
 export default class Signup extends React.Component {
   private email: React.RefObject<HTMLInputElement>;
@@ -11,21 +12,46 @@ export default class Signup extends React.Component {
   }
 
 
-  private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  private async handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const input = this.email.current;
 
     if (input) {
-      console.log(this.isValidEmail(input.value));
-
       if (this.isValidEmail(input.value)) {
-        // Send User Email Verification Code
+        try {
+          const response = await fetch('http://localhost:3000/send-verification', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: input.value }),
+          });
+
+          if (response.ok) {
+            console.log("Verification email sent.");
+          } else {
+            console.error("Error sending verification email.");
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+        }
+      } else {
+        this.handleInvalidEmail();
       }
     }
   }
 
+  private handleInvalidEmail() {
+    const ptag = document.getElementsByClassName('invalidemailfeedback')[0] as HTMLParagraphElement;
+    ptag.innerHTML = "Invalid Email Entry: (ex.JohnB.Smith@calbaptist.edu)";
+    ptag.style.color = "red";
+  }
+
   private isValidEmail(email: string) {
+    const ptag = document.getElementsByClassName('invalidemailfeedback')[0] as HTMLParagraphElement;
+    ptag.innerHTML = "Verification Email Sent!";
+    ptag.style.color = "green";
     return email.endsWith('calbaptist.edu') && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
   }  
 
@@ -33,11 +59,11 @@ export default class Signup extends React.Component {
     return (
       <main className="Signup">
         <h2>Signup Form</h2>
-        <p>signup form here</p>
         <form onSubmit={this.handleSubmit} className="email">
           <input ref={this.email}></input>
           <button>Submit</button>
         </form>
+        <p className="invalidemailfeedback"></p>
       </main>
     );
   }
