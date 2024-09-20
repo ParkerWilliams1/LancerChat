@@ -11,7 +11,6 @@ export default class Signup extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-
   private async handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -43,15 +42,15 @@ export default class Signup extends React.Component {
   }
 
   private handleInvalidEmail() {
-    const ptag = document.getElementsByClassName('invalidemailfeedback')[0] as HTMLParagraphElement;
-    ptag.innerHTML = "Invalid Email Entry: (ex.JohnB.Smith@calbaptist.edu)";
-    ptag.style.color = "red";
+    const invalidEmailMessage = document.getElementsByClassName('invalidemailfeedback')[0] as HTMLParagraphElement;
+    invalidEmailMessage.innerHTML = "Invalid Email Entry: (ex.JohnB.Smith@calbaptist.edu)";
+    invalidEmailMessage.style.color = "red";
   }
 
   private isValidEmail(email: string) {
-    const ptag = document.getElementsByClassName('invalidemailfeedback')[0] as HTMLParagraphElement;
-    ptag.innerHTML = "Verification Email Sent!";
-    ptag.style.color = "green";
+    const validEmailMessage = document.getElementsByClassName('invalidemailfeedback')[0] as HTMLParagraphElement;
+    validEmailMessage.innerHTML = "Verification Email Sent!";
+    validEmailMessage.style.color = "green";
     return email.endsWith('calbaptist.edu') && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
   }  
 
