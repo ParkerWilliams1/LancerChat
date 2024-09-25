@@ -1,17 +1,33 @@
 import React from 'react';
+import { RTC_PEER_CONFIGURATION, WEBSOCKET_URL } from '../lib/constants';
 import '../styles/Home.sass';
-import { rtcConfiguration } from '../lib/constants';
+
+interface SocketMessage {
+  type: string;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidate;
+  content?: string;
+}
 
 interface HomeState {
   localStream: MediaStream | null;
   streaming: boolean;
+  messages: {
+    content: string;
+  }[];
 }
 
 export default class Home extends React.Component<object, HomeState> {
   private localVideoRef: React.RefObject<HTMLVideoElement>;
   private remoteVideoRef: React.RefObject<HTMLVideoElement>;
   private messageInputRef: React.RefObject<HTMLTextAreaElement>;
-  private peerConnection: RTCPeerConnection;
+  private peerConnection: RTCPeerConnection = new RTCPeerConnection(
+    RTC_PEER_CONFIGURATION
+  );
+  private socket: WebSocket = new WebSocket(WEBSOCKET_URL);
+  private candidates: RTCIceCandidate[] = [];
+  private messageCount: number = 0;
 
   constructor(props: object) {
     super(props);
@@ -21,15 +37,97 @@ export default class Home extends React.Component<object, HomeState> {
     this.state = {
       localStream: null,
       streaming: false,
+      messages: [],
     };
     this.toggleVideo = this.toggleVideo.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
-    this.peerConnection = new RTCPeerConnection(rtcConfiguration);
-    this.peerConnection.ontrack = (event) => {
-      console.log(event);
-      if (!this.remoteVideoRef.current) return;
-      this.remoteVideoRef.current.srcObject = event.streams[0] as MediaStream;
+  }
+
+  private isSocketMessage(message: object): message is SocketMessage {
+    return (
+      'type' in message &&
+      (('offer' in message && message.type === 'offer') ||
+        ('answer' in message && message.type === 'answer') ||
+        ('candidate' in message && message.type === 'candidate') ||
+        ('content' in message && message.type === 'message'))
+    );
+  }
+
+  override componentDidMount(): void {
+    this.socket.onmessage = async (event) => {
+      if (!event.data) return;
+      let message;
+      try {
+        message = JSON.parse(await event.data.text());
+      } catch (error) {
+        console.error('Error processing event', event, error);
+      }
+      if (!this.isSocketMessage(message)) {
+        console.error('Invalid socket message format', message);
+        return;
+      }
+      switch (message.type) {
+        case 'offer': {
+          if (!message.offer) return;
+          const description = new RTCSessionDescription(message.offer);
+          await this.peerConnection.setRemoteDescription(description);
+          const answer = await this.peerConnection.createAnswer();
+          await this.peerConnection.setLocalDescription(answer);
+          this.socket.send(
+            JSON.stringify({
+              type: 'answer',
+              answer,
+            })
+          );
+          break;
+        }
+        case 'answer': {
+          if (!message.answer) return;
+          const description = new RTCSessionDescription(message.answer);
+          await this.peerConnection.setRemoteDescription(description);
+          break;
+        }
+        case 'candidate':
+          if (!message.candidate) return;
+          if (this.peerConnection.signalingState === 'stable') {
+            this.peerConnection.addIceCandidate(message.candidate);
+          } else {
+            this.candidates.push(message.candidate);
+          }
+          break;
+        case 'message': {
+          const content = message.content;
+          if (!content) return;
+          this.setState((prevState) => ({
+            ...prevState,
+            messages: [...prevState.messages, { content }],
+          }));
+          break;
+        }
+        default:
+          console.error('Unknown message type ' + message.type);
+          return;
+      }
+      return;
     };
+    this.socket.onerror = function (error) {
+      console.error('WebSocket error:', error);
+    };
+    this.peerConnection.addEventListener('track', ({ streams }) => {
+      if (
+        this.remoteVideoRef.current &&
+        streams.length > 0 &&
+        streams[0] instanceof MediaStream
+      ) {
+        this.remoteVideoRef.current.srcObject = streams[0];
+      }
+    });
+    this.peerConnection.addEventListener('signalingstatechange', () => {
+      if (this.peerConnection.signalingState === 'stable') {
+        for (const candidate of this.candidates)
+          this.peerConnection.addIceCandidate(candidate);
+      }
+    });
   }
 
   async skipUser(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
@@ -50,10 +148,17 @@ export default class Home extends React.Component<object, HomeState> {
         await new Promise<void>((resolve) =>
           this.setState({ localStream }, resolve)
         );
-        localStream.getTracks().forEach(track => this.peerConnection.addTrack(track, localStream));
+        localStream
+          .getTracks()
+          .forEach((track) => this.peerConnection.addTrack(track, localStream));
         const offer = await this.peerConnection.createOffer();
         await this.peerConnection.setLocalDescription(offer);
-        console.log(offer);
+        this.socket.send(
+          JSON.stringify({
+            type: 'offer',
+            offer,
+          })
+        );
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error accessing media devices.', error);
@@ -76,31 +181,18 @@ export default class Home extends React.Component<object, HomeState> {
     event.preventDefault();
     const input = this.messageInputRef.current;
     if (!input) return;
-    try {
-      const json = JSON.parse(input.value);
-      if (json.type === 'offer') {
-        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(json));
-        const answer = await this.peerConnection.createAnswer();
-        await this.peerConnection.setLocalDescription(answer);
-        console.log(answer);
-      } else if (json.type === 'answer') {
-        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(json));
-      }
-
-      this.peerConnection.onicecandidate = ({ candidate }) => {
-        if (candidate) this.peerConnection.addIceCandidate(candidate);
-      };
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.log(error);
-      }
-    }
+    const content = input.value;
+    this.setState((oldState) => ({
+      ...oldState,
+      messages: [...oldState.messages, { content }],
+    }));
+    this.socket.send(
+      JSON.stringify({
+        type: 'message',
+        content,
+      })
+    );
     input.value = '';
-  }
-
-  handleMessageInput(event: React.FormEvent<HTMLTextAreaElement>): void {
-    const messageInput = event.target as HTMLTextAreaElement | null;
-    if (!messageInput) return;
   }
 
   override render(): React.JSX.Element {
@@ -117,12 +209,15 @@ export default class Home extends React.Component<object, HomeState> {
           </div>
         </div>
         <section className="chat-content">
-          <ul className="messages-list"></ul>
+          <ul className="messages-list">
+            {this.state.messages.map((message) => (
+              <li key={this.messageCount++}>{message.content}</li>
+            ))}
+          </ul>
           <form className="message-form" onSubmit={this.sendMessage}>
             <textarea
               className="message-input"
               ref={this.messageInputRef}
-              onInput={this.handleMessageInput}
               spellCheck="false"
             />
             <button className="submit-message">

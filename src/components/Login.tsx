@@ -12,8 +12,6 @@ export default class Login extends React.Component {
     this.password = React.createRef();
   }
 
-
-
   override render(): React.JSX.Element {
     return (
       <main className="login">
