@@ -2,26 +2,30 @@ import React from 'react';
 import { RTC_PEER_CONFIGURATION, WEBSOCKET_URL } from '../lib/constants';
 import '../styles/Home.sass';
 
+interface ChatMessage {
+  author: string;
+  content: string;
+}
+
 interface SocketMessage {
   type: string;
   offer?: RTCSessionDescriptionInit;
   answer?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidate;
-  content?: string;
+  message?: string;
 }
 
 interface HomeState {
   localStream: MediaStream | null;
   streaming: boolean;
-  messages: {
-    content: string;
-  }[];
+  messages: ChatMessage[];
 }
 
 export default class Home extends React.Component<object, HomeState> {
   private localVideoRef: React.RefObject<HTMLVideoElement>;
   private remoteVideoRef: React.RefObject<HTMLVideoElement>;
   private messageInputRef: React.RefObject<HTMLTextAreaElement>;
+  private messageFormRef: React.RefObject<HTMLFormElement>;
   private peerConnection: RTCPeerConnection = new RTCPeerConnection(
     RTC_PEER_CONFIGURATION
   );
@@ -34,6 +38,7 @@ export default class Home extends React.Component<object, HomeState> {
     this.localVideoRef = React.createRef();
     this.remoteVideoRef = React.createRef();
     this.messageInputRef = React.createRef();
+    this.messageFormRef = React.createRef();
     this.state = {
       localStream: null,
       streaming: false,
@@ -41,6 +46,7 @@ export default class Home extends React.Component<object, HomeState> {
     };
     this.toggleVideo = this.toggleVideo.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
   private isSocketMessage(message: object): message is SocketMessage {
@@ -49,7 +55,7 @@ export default class Home extends React.Component<object, HomeState> {
       (('offer' in message && message.type === 'offer') ||
         ('answer' in message && message.type === 'answer') ||
         ('candidate' in message && message.type === 'candidate') ||
-        ('content' in message && message.type === 'message'))
+        ('message' in message && message.type === 'message'))
     );
   }
 
@@ -96,11 +102,17 @@ export default class Home extends React.Component<object, HomeState> {
           }
           break;
         case 'message': {
-          const content = message.content;
-          if (!content) return;
+          let newMessage: { content: string; };
+          try {
+            newMessage = JSON.parse(message.message as string);
+          } catch (error) {
+            console.error('Failed to parse chat message', error);
+            return;
+          }
+          if (!newMessage || !newMessage.content) return;
           this.setState((prevState) => ({
             ...prevState,
-            messages: [...prevState.messages, { content }],
+            messages: [...prevState.messages, { content: newMessage.content, author: 'Stranger' }], 
           }));
           break;
         }
@@ -177,19 +189,30 @@ export default class Home extends React.Component<object, HomeState> {
     this.setState((prevState) => ({ streaming: !prevState.streaming }));
   }
 
+  handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    const textarea = event.target as HTMLTextAreaElement | null;
+    if (!textarea) return;
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.messageFormRef.current?.requestSubmit();
+    }
+  }
+
   async sendMessage(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const input = this.messageInputRef.current;
-    if (!input) return;
+    if (!input || !input.value) return;
     const content = input.value;
     this.setState((oldState) => ({
       ...oldState,
-      messages: [...oldState.messages, { content }],
+      messages: [...oldState.messages, { author: 'You', content }],
     }));
     this.socket.send(
       JSON.stringify({
         type: 'message',
-        content,
+        message: JSON.stringify({
+          content,
+        }),
       })
     );
     input.value = '';
@@ -211,13 +234,14 @@ export default class Home extends React.Component<object, HomeState> {
         <section className="chat-content">
           <ul className="messages-list">
             {this.state.messages.map((message) => (
-              <li key={this.messageCount++}>{message.content}</li>
+              <li key={this.messageCount++}><span className={message.author.toLowerCase()}>{message.author}:</span> {message.content}</li>
             ))}
           </ul>
-          <form className="message-form" onSubmit={this.sendMessage}>
+          <form ref={this.messageFormRef} className="message-form" onSubmit={this.sendMessage}>
             <textarea
               className="message-input"
               ref={this.messageInputRef}
+              onKeyDown={this.handleKeyDown}
               spellCheck="false"
             />
             <button className="submit-message">
