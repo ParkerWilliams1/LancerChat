@@ -72,6 +72,7 @@ export default class Home extends React.Component<object, HomeState> {
         console.error('Invalid socket message format', message);
         return;
       }
+      console.log('Processing message', message);
       switch (message.type) {
         case 'offer': {
           if (!message.offer) return;
@@ -88,7 +89,7 @@ export default class Home extends React.Component<object, HomeState> {
           break;
         }
         case 'answer': {
-          if (!message.answer) return;
+          if (!message.answer || this.peerConnection.signalingState === 'stable') return;
           const description = new RTCSessionDescription(message.answer);
           await this.peerConnection.setRemoteDescription(description);
           break;
@@ -135,6 +136,7 @@ export default class Home extends React.Component<object, HomeState> {
       }
     });
     this.peerConnection.addEventListener('signalingstatechange', () => {
+      console.log(this.peerConnection.signalingState);
       if (this.peerConnection.signalingState === 'stable') {
         for (const candidate of this.candidates)
           this.peerConnection.addIceCandidate(candidate);
