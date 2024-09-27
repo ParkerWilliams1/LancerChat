@@ -19,6 +19,7 @@ interface HomeState {
   localStream: MediaStream | null;
   streaming: boolean;
   messages: ChatMessage[];
+  connected: boolean;
 }
 
 export default class Home extends React.Component<object, HomeState> {
@@ -43,10 +44,12 @@ export default class Home extends React.Component<object, HomeState> {
       localStream: null,
       streaming: false,
       messages: [],
+      connected: false,
     };
     this.toggleVideo = this.toggleVideo.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.skipUser = this.skipUser.bind(this);
   }
 
   private isSocketMessage(message: object): message is SocketMessage {
@@ -89,7 +92,9 @@ export default class Home extends React.Component<object, HomeState> {
           break;
         }
         case 'answer': {
-          if (!message.answer || this.peerConnection.signalingState === 'stable') return;
+          if (!message.answer) return;
+          if (this.peerConnection.signalingState !== 'have-local-offer' && this.peerConnection.signalingState !== 'stable') return;
+          if (this.peerConnection.iceConnectionState === 'closed') return;
           const description = new RTCSessionDescription(message.answer);
           await this.peerConnection.setRemoteDescription(description);
           break;
@@ -135,17 +140,34 @@ export default class Home extends React.Component<object, HomeState> {
         this.remoteVideoRef.current.srcObject = streams[0];
       }
     });
+    this.peerConnection.addEventListener('icecandidate', ({ candidate }) => {
+      console.log('Recieved candidate locally', candidate);
+      if (!candidate) return;
+      if (this.peerConnection.signalingState === 'stable') {
+        this.peerConnection.addIceCandidate(candidate);
+      } else {
+        this.candidates.push(candidate);
+      }
+      this.socket.send(JSON.stringify({
+        type: 'candidate',
+        candidate,
+      }));
+    });
     this.peerConnection.addEventListener('signalingstatechange', () => {
       console.log(this.peerConnection.signalingState);
       if (this.peerConnection.signalingState === 'stable') {
         for (const candidate of this.candidates)
           this.peerConnection.addIceCandidate(candidate);
+        this.setState({ connected: true });
+      } else {
+        this.setState({ connected: false });
       }
     });
   }
 
   async skipUser(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
     event.preventDefault();
+    console.log('Connected: ', this.state.connected);
   }
 
   async toggleVideo(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
@@ -251,8 +273,8 @@ export default class Home extends React.Component<object, HomeState> {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 256 256"
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 xmlSpace="preserve"
               >
                 <path
