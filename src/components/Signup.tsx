@@ -1,11 +1,22 @@
 import React from 'react';
 import '../styles/Signup.sass';
+import VerifyEmail from './VerifyEmail';
 
-export default class Signup extends React.Component {
+interface SignupState {
+  email: string;
+  isSubmitted: boolean;
+}
+
+export default class Signup extends React.Component<Record<string, never>, SignupState> {
   private email: React.RefObject<HTMLInputElement>;
 
-  constructor(props: object) {
+  constructor(props: Record<string, never>) {
     super(props);
+
+    this.state = {
+      email: '',
+      isSubmitted: false,
+    };
 
     this.email = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -16,31 +27,28 @@ export default class Signup extends React.Component {
 
     const input = this.email.current;
 
-    if (input) {
-      if (this.isValidEmail(input.value)) {
-        try {
-          const response = await fetch(
-            'http://localhost:3000/send-verification',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ email: input.value }),
-            }
-          );
+    if (input && this.isValidEmail(input.value)) {
+      this.setState({ email: input.value, isSubmitted: true });
 
-          if (response.ok) {
-            console.log('Verification email sent.');
-          } else {
-            console.error('Error sending verification email.');
-          }
-        } catch (error) {
-          console.error('Fetch error:', error);
+      try {
+        const response = await fetch('http://localhost:3001/send-verification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: input.value }),
+        });
+
+        if (response.ok) {
+          console.log("Verification email sent.");
+        } else {
+          console.error("Error sending verification email.");
         }
-      } else {
-        this.handleInvalidEmail();
+      } catch (error) {
+        console.error("Fetch error:", error);
       }
+    } else {
+      this.handleInvalidEmail();
     }
   }
 
@@ -70,10 +78,14 @@ export default class Signup extends React.Component {
       <main className="Signup">
         <h2>Signup Form</h2>
         <form onSubmit={this.handleSubmit} className="email">
-          <input ref={this.email}></input>
+          <input ref={this.email} type="email" placeholder="Enter your email" />
           <button>Submit</button>
         </form>
         <p className="invalidemailfeedback"></p>
+
+        {this.state.isSubmitted && (
+          <VerifyEmail propemail={this.state.email} />
+        )}
       </main>
     );
   }
