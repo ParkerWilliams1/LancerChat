@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import '../styles/VerifyEmail.sass';
 
 interface VerifyEmailProps {
   propemail: string;
@@ -31,7 +32,7 @@ class VerifyEmail extends Component<VerifyEmailProps, VerifyEmailState> {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3001/verify-code', {
+      const response = await fetch('http://localhost:3002/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,6 +46,11 @@ class VerifyEmail extends Component<VerifyEmailProps, VerifyEmailState> {
       if (response.ok) {
         this.setState({ isVerified: true, errorMessage: '' });
         console.log('Email verified successfully!');
+
+        // Redirect to homepage after successful verification
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       } else {
         this.setState({ errorMessage: 'Verification failed. Please try again.' });
       }

@@ -2,8 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Home from './components/Home';
-import Login from './components/Login';
-import Signup from './components/Signup';
+import { Login } from './components/Login';
 import NotFound from './components/NotFound';
 import AppHeader from './components/AppHeader';
 import './styles/global.sass';
@@ -36,10 +35,6 @@ const router = createBrowserRouter([
       {
         path: '/login',
         element: <Login />,
-      },
-      {
-        path: '/signup',
-        element: <Signup />,
       },
     ],
   },
