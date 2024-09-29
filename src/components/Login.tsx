@@ -7,7 +7,10 @@ interface LoginState {
   isSubmitted: boolean;
 }
 
-export class Login extends React.Component<Record<string, never>, LoginState> {
+export default class Login extends React.Component<
+  Record<string, never>,
+  LoginState
+> {
   private email: React.RefObject<HTMLInputElement>;
 
   constructor(props: Record<string, never>) {
@@ -31,21 +34,24 @@ export class Login extends React.Component<Record<string, never>, LoginState> {
       this.setState({ email: input.value, isSubmitted: true });
 
       try {
-        const response = await fetch('http://localhost:3002/loginverification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: input.value }),
-        });
+        const response = await fetch(
+          'http://localhost:3002/loginverification',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: input.value }),
+          }
+        );
 
         if (response.ok) {
-          console.log("Login verification email sent.");
+          console.log('Login verification email sent.');
         } else {
-          console.error("Error sending login verification email.");
+          console.error('Error sending login verification email.');
         }
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error('Fetch error:', error);
       }
     } else {
       this.handleInvalidEmail();

@@ -5,5 +5,4 @@ export const RTC_PEER_CONFIGURATION = {
     },
   ],
 };
-export const WEBSOCKET_URL =
-  'ws://ec2-52-87-222-215.compute-1.amazonaws.com:4200';
+export const WEBSOCKET_URL = 'wss://api.lancer.chat';
