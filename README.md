@@ -16,6 +16,6 @@
 ## Tech Stack
 
 - **Frontend**: TypeScript, React, SASS
-- **Backend**: Node.js, Express, WebSocket, Nodemailer, Argon2, WebRTC
+- **Backend**: Node.js, Express, WebSocket, Nodemailer, WebRTC
 - **Database**: PostgreSQL
 - **Build Tools**: Webpack

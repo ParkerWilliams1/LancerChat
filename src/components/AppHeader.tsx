@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/AppHeader.sass';
 
-export default class AppHeader extends React.Component {
+expor default class AppHeader extends React.Component {
   override render(): React.JSX.Element {
     return (
       <header className="app-header">
