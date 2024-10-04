@@ -171,46 +171,51 @@ export default class Home extends React.Component<object, HomeState> {
   }
 
   async toggleVideo(event: React.MouseEvent<HTMLButtonElement>): Promise<void> {
-    const button = event.target as HTMLButtonElement | null;
-    const localVideo = this.localVideoRef.current;
-    if (!button || !localVideo) return;
-    if (this.state.localStream === null) {
-      button.innerText = 'Loading...';
-      try {
-        const localStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-        await new Promise<void>((resolve) =>
-          this.setState({ localStream }, resolve)
-        );
-        localStream
-          .getTracks()
-          .forEach((track) => this.peerConnection.addTrack(track, localStream));
-        const offer = await this.peerConnection.createOffer();
-        await this.peerConnection.setLocalDescription(offer);
-        this.socket.send(
-          JSON.stringify({
-            type: 'offer',
-            offer,
-          })
-        );
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error('Error accessing media devices.', error);
+    const tokenValue = this.getCookieValue('authToken');
+    if (tokenValue) {
+      const button = event.target as HTMLButtonElement | null;
+      const localVideo = this.localVideoRef.current;
+      if (!button || !localVideo) return;
+      if (this.state.localStream === null) {
+        button.innerText = 'Loading...';
+        try {
+          const localStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+          await new Promise<void>((resolve) =>
+            this.setState({ localStream }, resolve)
+          );
+          localStream
+            .getTracks()
+            .forEach((track) => this.peerConnection.addTrack(track, localStream));
+          const offer = await this.peerConnection.createOffer();
+          await this.peerConnection.setLocalDescription(offer);
+          this.socket.send(
+            JSON.stringify({
+              type: 'offer',
+              offer,
+            })
+          );
+        } catch (error) {
+          if (error instanceof Error) {
+            console.error('Error accessing media devices.', error);
+          }
+          return;
         }
-        return;
       }
-    }
 
-    if (this.state.streaming) {
-      button.innerText = 'Start Video';
-      localVideo.srcObject = null;
-    } else {
-      button.innerText = 'Stop Video';
-      localVideo.srcObject = this.state.localStream;
-    }
-    this.setState((prevState) => ({ streaming: !prevState.streaming }));
+      if (this.state.streaming) {
+        button.innerText = 'Start Video';
+        localVideo.srcObject = null;
+      } else {
+        button.innerText = 'Stop Video';
+        localVideo.srcObject = this.state.localStream;
+      }
+      this.setState((prevState) => ({ streaming: !prevState.streaming }));
+      } else {
+        window.location.href =  '/login';
+      }
   }
 
   handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -241,6 +246,20 @@ export default class Home extends React.Component<object, HomeState> {
     );
     input.value = '';
   }
+
+   getCookieValue(cookieName: string): string | undefined {
+    const cookieString = document.cookie;
+    const cookies = cookieString.split('; ');
+
+    for (const cookie of cookies) {
+      const [name, value] = cookie.split('=');
+      if (name === cookieName) {
+        return value;
+      }
+    }
+    return undefined;
+  }
+  
 
   override render(): React.JSX.Element {
     return (

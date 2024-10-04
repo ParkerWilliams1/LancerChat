@@ -33,31 +33,43 @@ class VerifyEmail extends Component<VerifyEmailProps, VerifyEmailState> {
 
     try {
       const response = await fetch('http://localhost:3002/verify-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: this.props.propemail,
-          code: this.state.verificationCode,
-        }),
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              email: this.props.propemail,
+              code: this.state.verificationCode,
+          }),
       });
-
+  
       if (response.ok) {
-        this.setState({ isVerified: true, errorMessage: '' });
-        console.log('Email verified successfully!');
+          const data = await response.json();
+          const { token } = data; 
 
-        // Redirect to homepage after successful verification
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
+          if (token) {
+              // localStorage.setItem('token', token); This will be removed for cookies
+              document.cookie = `authToken=${token}`
+              console.log('JWT Token:', token);
+          }
+  
+          this.setState({ isVerified: true, errorMessage: '' });
+          console.log('Email verified successfully!');
+  
+          // Redirect to homepage after successful verification
+          setTimeout(() => {
+              window.location.href = '/';
+          }, 1000);
       } else {
-        this.setState({ errorMessage: 'Verification failed. Please try again.' });
+          const errorData = await response.json();
+          this.setState({ errorMessage: errorData.message });
+          console.error('Verification failed:', errorData.message);
       }
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error('Error during verification:', error);
       this.setState({ errorMessage: 'An error occurred during verification.' });
     }
+  
   }
 
   override render() {
@@ -75,7 +87,7 @@ class VerifyEmail extends Component<VerifyEmailProps, VerifyEmailState> {
             type="text"
             value={this.state.verificationCode}
             onChange={this.handleChange}
-            placeholder="Enter verification code"
+            placeholder="Please Enter verification code"
           />
           <button type="submit">Verify</button>
         </form>
