@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import Home from './components/Home';
-import { Login } from './components/Login';
+import Login from './components/Login';
 import NotFound from './components/NotFound';
 import AppHeader from './components/AppHeader';
 import './styles/global.sass';
@@ -21,12 +21,7 @@ const router = createBrowserRouter([
         <Outlet />
       </React.Fragment>
     ),
-    errorElement: (
-      <React.Fragment>
-        <AppHeader />
-        <NotFound />
-      </React.Fragment>
-    ),
+    errorElement: null,
     children: [
       {
         path: '/',
@@ -36,9 +31,18 @@ const router = createBrowserRouter([
         path: '/login',
         element: <Login />,
       },
+      {
+        path: '*',
+        element: <NotFound />,
+      },
     ],
   },
 ]);
 
+// Setup a global error handler
 const root = ReactDOM.createRoot(rootElement);
-root.render(<RouterProvider router={router} />);
+root.render(
+  <React.StrictMode>
+    <RouterProvider router={router} fallbackElement={<NotFound />} />
+  </React.StrictMode>
+);

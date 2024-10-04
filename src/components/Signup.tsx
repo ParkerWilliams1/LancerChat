@@ -1,15 +1,15 @@
 import React from 'react';
-import '../styles/Login.sass';
+import '../styles/Signup.sass';
 import VerifyEmail from './VerifyEmail';
 
-interface LoginState {
+interface SignupState {
   email: string;
   isSubmitted: boolean;
 }
 
-export default class Login extends React.Component<
+export default class Signup extends React.Component<
   Record<string, never>,
-  LoginState
+  SignupState
 > {
   private email: React.RefObject<HTMLInputElement>;
 
@@ -35,7 +35,7 @@ export default class Login extends React.Component<
 
       try {
         const response = await fetch(
-          'http://localhost:3002/loginverification',
+          'http://localhost:3001/send-verification',
           {
             method: 'POST',
             headers: {
@@ -46,9 +46,9 @@ export default class Login extends React.Component<
         );
 
         if (response.ok) {
-          console.log('Login verification email sent.');
+          console.log('Verification email sent.');
         } else {
-          console.error('Error sending login verification email.');
+          console.error('Error sending verification email.');
         }
       } catch (error) {
         console.error('Fetch error:', error);
@@ -71,7 +71,7 @@ export default class Login extends React.Component<
     const validEmailMessage = document.getElementsByClassName(
       'invalidemailfeedback'
     )[0] as HTMLParagraphElement;
-    validEmailMessage.innerHTML = 'Login Verification Email Sent!';
+    validEmailMessage.innerHTML = 'Verification Email Sent!';
     validEmailMessage.style.color = 'green';
     return (
       email.endsWith('calbaptist.edu') &&
@@ -80,18 +80,16 @@ export default class Login extends React.Component<
   }
 
   override render(): React.JSX.Element {
-    if (this.state.isSubmitted) {
-      return <VerifyEmail propemail={this.state.email} />;
-    }
-
     return (
-      <main className="Login">
-        <h2>Login Form</h2>
+      <main className="Signup">
+        <h2>Signup Form</h2>
         <form onSubmit={this.handleSubmit} className="email">
           <input ref={this.email} type="email" placeholder="Enter your email" />
           <button>Submit</button>
         </form>
         <p className="invalidemailfeedback"></p>
+
+        {this.state.isSubmitted && <VerifyEmail propemail={this.state.email} />}
       </main>
     );
   }

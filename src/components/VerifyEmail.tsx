@@ -61,9 +61,15 @@ class VerifyEmail extends Component<VerifyEmailProps, VerifyEmailState> {
               window.location.href = '/';
           }, 1000);
       } else {
+<<<<<<< HEAD
           const errorData = await response.json();
           this.setState({ errorMessage: errorData.message });
           console.error('Verification failed:', errorData.message);
+=======
+        this.setState({
+          errorMessage: 'Verification failed. Please try again.',
+        });
+>>>>>>> cd99db7c5d1e5dabc85807755ed01f5091ba8b61
       }
     } catch (error) {
       console.error('Error during verification:', error);
@@ -80,7 +86,9 @@ class VerifyEmail extends Component<VerifyEmailProps, VerifyEmailState> {
     return (
       <div className="VerifyEmail">
         <h3>Verify your email</h3>
-        <p>Please enter the verification code sent to: {this.props.propemail}</p>
+        <p>
+          Please enter the verification code sent to: {this.props.propemail}
+        </p>
 
         <form onSubmit={this.handleVerify}>
           <input
