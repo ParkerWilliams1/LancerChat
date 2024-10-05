@@ -9,7 +9,6 @@
 - **Video Chat**: High-quality, peer-to-peer video chat powered by WebRTC.
 - **Real-Time Matchmaking**: Efficient WebSocket-based matchmaking system that pairs users for video chats.
 - **Email Authentication**: User authentication via email using **Nodemailer**, ensuring security and reliability.
-- **Secure Password Storage**: Passwords are hashed using **Argon2** for robust data protection.
 - **Data Management**: PostgreSQL database for secure and efficient data management.
 - **Responsive Frontend**: Built with **TypeScript** and **React**, styled using **SASS**, and bundled with **Webpack** for fast, responsive client-side performance.
 
